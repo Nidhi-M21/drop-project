@@ -139,6 +139,7 @@ class AssignmentTeacherFiles(val buildWorker: BuildWorker,
 
         val packages = packageName.orEmpty().split(".")
         val mainFile = if (language == Language.JAVA) "Main.java" else "Main.kt"
+        val applicationFile = if (language == Language.JAVA) "SomethingApplication.java" else "SomethingApplication.kt"
         val folder = if (language == Language.JAVA) "java" else "kotlin"
 
         var packagesTree = i18n.getMessage("student.upload.form.tree1", null, currentLocale) + System.lineSeparator()
@@ -163,14 +164,16 @@ class AssignmentTeacherFiles(val buildWorker: BuildWorker,
                     packagesTree += "|" + "-".repeat(indent) + " " + packagePart + System.lineSeparator()
                     indent += 3
                 }
-                packagesTree += "|" + "-".repeat(indent) + " ${mainFile}" + System.lineSeparator()
+                packagesTree += "|" + "-".repeat(indent) + " ${applicationFile}   (@SpringBootApplication)" + System.lineSeparator()
                 packagesTree += "|" + "-".repeat(indent) + " ...   (${i18n.getMessage("student.upload.form.tree2", null, currentLocale)})" + System.lineSeparator()
-
+                packagesTree += "|------ resources" + System.lineSeparator()
+                packagesTree += "|--------- application.properties" + System.lineSeparator()
+                packagesTree += "|--- test" + System.lineSeparator()
+                packagesTree += "|------ ${folder}" + System.lineSeparator()
                 if (hasStudentTests) {
-                    packagesTree += "|--- test" + System.lineSeparator()
-                    packagesTree += "|------ ${folder}" + System.lineSeparator()
                     packagesTree += "|--------- ...   (student tests)" + System.lineSeparator()
                 }
+                packagesTree += "|------ resources" + System.lineSeparator()
             }
         }
 
