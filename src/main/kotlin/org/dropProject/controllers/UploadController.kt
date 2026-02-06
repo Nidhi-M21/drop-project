@@ -534,7 +534,7 @@ class UploadController(
 
             } catch (ipse: InvalidProjectStructureException) {
                 LOG.info("Invalid project structure: ${ipse.message}")
-                model["error"] = "O projecto localizado no repositório ${gitRepository} tem uma estrutura inválida: ${ipse.message}"
+                model["error"] = i18n.getMessage("student.git.setup.invalid-structure", arrayOf(gitRepository, ipse.message), currentLocale)
                 model["gitSubmission"] = gitSubmission
                 return "student-setup-git"
             } catch (e: Exception) {

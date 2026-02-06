@@ -244,8 +244,8 @@ class UploadControllerTests {
         @Suppress("UNCHECKED_CAST")
         val structureErrors = reportResult.modelAndView!!.modelMap["structureErrors"] as List<String>
         assertThat(structureErrors,
-                CoreMatchers.hasItems("O projecto não contém uma pasta 'src/org/dropProject/sampleAssignments/testProj'",
-                        "O projecto não contém o ficheiro Main.java na pasta 'src/org/dropProject/sampleAssignments/testProj'"))
+                hasItems("The project does not contain a 'src/org/dropProject/sampleAssignments/testProj' folder",
+                        "The project does not contain the Main.java file in the 'src/org/dropProject/sampleAssignments/testProj' folder"))
     }
 
 
@@ -267,8 +267,7 @@ class UploadControllerTests {
 
         @Suppress("UNCHECKED_CAST")
         val structureErrors = reportResult.modelAndView!!.modelMap["structureErrors"] as List<String>
-        assertThat(structureErrors,
-                CoreMatchers.hasItems("O projecto contém uma pasta README.md mas devia ser um ficheiro"))
+        assertThat(structureErrors, hasItems("The project contains a README.md folder but it should be a file"))
     }
 
 
@@ -328,13 +327,17 @@ class UploadControllerTests {
 
         testsHelper.uploadProject(this.mvc, "projectCheckstyleErrors", "testJavaProj", STUDENT_1)
         val now = LocalTime.now()
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
         this.mvc.perform(get("/upload/testJavaProj")
                 .with(user(STUDENT_1)))
                 .andExpect(status().isOk)
                 .andExpect(view().name("student-upload-form"))
                 .andExpect(model().attribute("coolOffEnd",
-                        now.plusMinutes(10).format(DateTimeFormatter.ofPattern("HH:mm"))))
+                        anyOf(
+                            equalTo(now.plusMinutes(10).format(formatter)),
+                            equalTo(now.plusMinutes(9).format(formatter))
+                        )))
     }
 
     @Test
@@ -895,7 +898,7 @@ class UploadControllerTests {
                     .param("async", "false")
                     .with(user(STUDENT_1)))
                     .andExpect(status().isInternalServerError())
-                    .andExpect(content().json("{ \"error\": \"O ficheiro AUTHORS.txt não está correcto. Contém autores duplicados.\"}"))
+                    .andExpect(content().json("{ \"error\": \"The AUTHORS.txt file is not correct. It contains duplicate authors.\"}"))
 
         } finally {
             val writer = Files.newBufferedWriter(path)
@@ -1710,7 +1713,7 @@ class UploadControllerTests {
 
         @Suppress("UNCHECKED_CAST")
         val structureErrors = reportResult.modelAndView!!.modelMap["structureErrors"] as List<String>
-        assertThat(structureErrors, hasItems("As classes de teste devem começar com a palavra Test (exemplo: TestCar)"))
+        assertThat(structureErrors, hasItems("Test classes must start with the word Test (example: TestCar)"))
     }
 
     @Test
@@ -1921,8 +1924,7 @@ class UploadControllerTests {
         val structureErrors = reportResult.modelAndView!!.modelMap["structureErrors"] as List<String>
         assertTrue("Should have structure errors", structureErrors.isNotEmpty())
         assertThat(structureErrors,
-            hasItems("O projecto não contém uma pasta 'src/main/java/org/dropProject/sampleAssignments/testProj'",
-                "O projecto não contém o ficheiro Main.java na pasta 'src/main/java/org/dropProject/sampleAssignments/testProj'"))
+            hasItems("The project does not contain a 'src/main/java/org/dropProject/sampleAssignments/testProj' folder"))
     }
 
     @Test

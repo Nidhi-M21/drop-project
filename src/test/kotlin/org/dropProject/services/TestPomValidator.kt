@@ -89,7 +89,7 @@ class TestPomValidator {
         assertTrue("Should have error messages", result.errors.isNotEmpty())
         // Different version should be detected as both extra (new version) and missing (old version)
         assertTrue("Should detect version mismatch",
-            result.errors.any { it.contains("junit:junit:4.13.2") || it.contains("junit:junit:4.13.1") })
+            result.errors.any { it.contains("junit:junit") && it.contains("4.13.1") && it.contains("4.13.2") })
     }
 
     @Test

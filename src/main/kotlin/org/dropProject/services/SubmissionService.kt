@@ -542,16 +542,6 @@ class SubmissionService(
             erros.add(i18n.getMessage("error.maven.missing.package", arrayOf(folder, packageName), currentLocale))
         }
 
-        // Check for Spring Boot application class
-        val hasSpringBootApp = File(projectFolder, "src/main/$folder")
-            .walkTopDown()
-            .filter { it.extension in listOf("java", "kt") }
-            .any { containsSearchString(it, "@SpringBootApplication") }
-
-        if (!hasSpringBootApp) {
-            erros.add(i18n.getMessage("error.maven.missing.springboot", null, currentLocale))
-        }
-
         // Check for TestTeacher* files (security check)
         if (File(projectFolder, "src")
                 .walkTopDown()

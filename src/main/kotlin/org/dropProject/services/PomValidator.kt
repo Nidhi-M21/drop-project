@@ -21,9 +21,12 @@ package org.dropproject.services
 
 import org.apache.maven.model.Dependency
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.MessageSource
 import org.springframework.stereotype.Service
 import java.io.File
 import java.io.FileReader
+import java.util.Locale
 
 /**
  * Result of validating a student's pom.xml file against the teacher's pom.xml file.
@@ -40,7 +43,10 @@ data class PomValidationResult(
  * Service responsible for validating student pom.xml files against teacher pom.xml files.
  */
 @Service
-class PomValidator {
+class PomValidator(val i18n: MessageSource) {
+
+    @Value("\${spring.web.locale}")
+    val currentLocale: Locale = Locale.getDefault()
 
     /**
      * Validates that student's pom.xml dependencies match teacher's pom.xml dependencies.
@@ -64,30 +70,43 @@ class PomValidator {
             val studentDeps = studentModel.dependencies.orEmpty()
             val teacherDeps = teacherModel.dependencies.orEmpty()
 
-            // Create dependency keys for comparison (groupId:artifactId:version)
-            val allTeacherDepKeys = teacherDeps.map { depKey(it) }.toSet()
-            val studentDepKeys = studentDeps.map { depKey(it) }.toSet()
-
-            // Check for extra dependencies in student pom
-            // Students cannot add dependencies not in teacher's pom
-            val extraDeps = studentDepKeys - allTeacherDepKeys
-            if (extraDeps.isNotEmpty()) {
-                errors.add("Student pom.xml contains dependencies not in teacher's pom.xml:")
-                extraDeps.forEach { errors.add("  - $it") }
-            }
-
-            // Check for missing required dependencies
-            // When student tests are not accepted, test dependencies are optional
+            // Filter required teacher deps (when student tests are not accepted, test deps are optional)
             val requiredTeacherDeps = if (acceptsStudentTests) {
                 teacherDeps
             } else {
                 teacherDeps.filter { !isTestDependency(it) }
             }
-            val requiredDepKeys = requiredTeacherDeps.map { depKey(it) }.toSet()
-            val missingDeps = requiredDepKeys - studentDepKeys
+
+            // Maps by groupId:artifactId for detecting version mismatches
+            val teacherDepsByGA = teacherDeps.associateBy { depGA(it) }
+            val studentDepsByGA = studentDeps.associateBy { depGA(it) }
+
+            // Check for version mismatches (same groupId:artifactId, different version)
+            val mismatchedDeps = studentDeps.filter { dep ->
+                val ga = depGA(dep)
+                val teacherDep = teacherDepsByGA[ga]
+                teacherDep != null && depKey(dep) != depKey(teacherDep)
+            }
+            if (mismatchedDeps.isNotEmpty()) {
+                errors.add(i18n.getMessage("error.maven.deps.mismatch", null, currentLocale))
+                mismatchedDeps.forEach { dep ->
+                    val ga = depGA(dep)
+                    errors.add("  - ${ga} (expected: ${teacherDepsByGA[ga]!!.version}, found: ${dep.version})")
+                }
+            }
+
+            // Check for extra dependencies (not in teacher's pom at all)
+            val extraDeps = studentDeps.filter { depGA(it) !in teacherDepsByGA }
+            if (extraDeps.isNotEmpty()) {
+                errors.add(i18n.getMessage("error.maven.deps.extra", null, currentLocale))
+                extraDeps.forEach { errors.add("  - ${depKey(it)}") }
+            }
+
+            // Check for missing required dependencies
+            val missingDeps = requiredTeacherDeps.filter { depGA(it) !in studentDepsByGA }
             if (missingDeps.isNotEmpty()) {
-                errors.add("Student pom.xml is missing required dependencies:")
-                missingDeps.forEach { errors.add("  - $it") }
+                errors.add(i18n.getMessage("error.maven.deps.missing", null, currentLocale))
+                missingDeps.forEach { errors.add("  - ${depKey(it)}") }
             }
 
             // If no errors, validation passes
@@ -96,7 +115,7 @@ class PomValidator {
             }
 
         } catch (e: Exception) {
-            errors.add("Failed to parse pom.xml file: ${e.message}")
+            errors.add(i18n.getMessage("error.maven.structure.invalid", null, currentLocale))
         }
 
         return PomValidationResult(isValid = false, errors = errors)
@@ -123,12 +142,22 @@ class PomValidator {
     }
 
     /**
-     * Creates a dependency key for comparison.
+     * Creates a dependency key for comparison (includes version).
      *
      * @param dep the Maven dependency
      * @return a string key in format "groupId:artifactId:version"
      */
     private fun depKey(dep: Dependency): String {
         return "${dep.groupId}:${dep.artifactId}:${dep.version}"
+    }
+
+    /**
+     * Creates a dependency key without version, for detecting version mismatches.
+     *
+     * @param dep the Maven dependency
+     * @return a string key in format "groupId:artifactId"
+     */
+    private fun depGA(dep: Dependency): String {
+        return "${dep.groupId}:${dep.artifactId}"
     }
 }
