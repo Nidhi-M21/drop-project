@@ -156,6 +156,7 @@ class AssignmentTeacherFiles(val buildWorker: BuildWorker,
                 packagesTree += "|" + "-".repeat(indent) + " ...   (${i18n.getMessage("student.upload.form.tree2", null, currentLocale)})" + System.lineSeparator()
             }
             SubmissionStructure.MAVEN -> {
+                packagesTree += "+ pom.xml" + System.lineSeparator()
                 packagesTree += "+ src" + System.lineSeparator()
                 packagesTree += "|--- main" + System.lineSeparator()
                 packagesTree += "|------ ${folder}" + System.lineSeparator()
