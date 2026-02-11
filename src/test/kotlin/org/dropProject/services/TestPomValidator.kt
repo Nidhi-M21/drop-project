@@ -53,7 +53,7 @@ class TestPomValidator {
     @Test
     fun `validate pom with extra dependencies`() {
         val teacherPom = File("src/test/sampleAssignments/sampleJavaProject/pom.xml")
-        val studentPom = File("src/test/resources/pom-with-extra-deps.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-with-extra-deps.xml")
 
         val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
 
@@ -67,7 +67,7 @@ class TestPomValidator {
     @Test
     fun `validate pom with missing dependencies`() {
         val teacherPom = File("src/test/sampleAssignments/sampleJavaProject/pom.xml")
-        val studentPom = File("src/test/resources/pom-with-missing-deps.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-with-missing-deps.xml")
 
         val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
 
@@ -81,7 +81,7 @@ class TestPomValidator {
     @Test
     fun `validate pom with different version`() {
         val teacherPom = File("src/test/sampleAssignments/sampleJavaProject/pom.xml")
-        val studentPom = File("src/test/resources/pom-with-different-version.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-with-different-version.xml")
 
         val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
 
@@ -90,6 +90,53 @@ class TestPomValidator {
         // Different version should be detected as both extra (new version) and missing (old version)
         assertTrue("Should detect version mismatch",
             result.errors.any { it.contains("junit:junit") && it.contains("4.13.1") && it.contains("4.13.2") })
+    }
+
+    @Test
+    fun `validate pom with matching parent`() {
+        val teacherPom = File("src/test/samplePomFiles/pom-with-parent.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-with-parent.xml")
+
+        val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
+
+        assertTrue("Validation should pass for matching parent", result.isValid)
+        assertTrue("No errors expected", result.errors.isEmpty())
+    }
+
+    @Test
+    fun `validate pom with different parent version`() {
+        val teacherPom = File("src/test/samplePomFiles/pom-with-parent.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-with-parent-different-version.xml")
+
+        val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
+
+        assertFalse("Validation should fail for different parent version", result.isValid)
+        assertTrue("Should have error messages", result.errors.isNotEmpty())
+        assertTrue("Should detect parent version mismatch",
+            result.errors.any { it.contains("3.5.10") && it.contains("4.0.2") })
+    }
+
+    @Test
+    fun `validate pom with missing parent`() {
+        val teacherPom = File("src/test/samplePomFiles/pom-with-parent.xml")
+        val studentPom = File("src/test/samplePomFiles/pom-without-parent.xml")
+
+        val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
+
+        assertFalse("Validation should fail for missing parent", result.isValid)
+        assertTrue("Should have error messages", result.errors.isNotEmpty())
+        assertTrue("Should mention the expected parent",
+            result.errors.any { it.contains("spring-boot-starter-parent") })
+    }
+
+    @Test
+    fun `validate pom without parent when teacher has no parent`() {
+        val teacherPom = File("src/test/sampleAssignments/sampleJavaProject/pom.xml")
+        val studentPom = File("src/test/sampleAssignments/sampleJavaProject/pom.xml")
+
+        val result = pomValidator.validateStudentPom(studentPom, teacherPom, acceptsStudentTests = true)
+
+        assertTrue("Validation should pass when neither has parent", result.isValid)
     }
 
     @Test

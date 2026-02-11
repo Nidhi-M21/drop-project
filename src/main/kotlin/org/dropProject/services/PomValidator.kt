@@ -67,6 +67,25 @@ class PomValidator(val i18n: MessageSource) {
             val studentModel = reader.read(FileReader(studentPomFile))
             val teacherModel = reader.read(FileReader(teacherPomFile))
 
+            // Validate parent element
+            val teacherParent = teacherModel.parent
+            val studentParent = studentModel.parent
+
+            if (teacherParent != null) {
+                if (studentParent == null) {
+                    errors.add(i18n.getMessage("error.maven.parent.missing", null, currentLocale))
+                    errors.add("  - ${teacherParent.groupId}:${teacherParent.artifactId}:${teacherParent.version}")
+                } else if (teacherParent.groupId != studentParent.groupId ||
+                           teacherParent.artifactId != studentParent.artifactId) {
+                    errors.add(i18n.getMessage("error.maven.parent.mismatch", null, currentLocale))
+                    errors.add("  - expected: ${teacherParent.groupId}:${teacherParent.artifactId}:${teacherParent.version}")
+                    errors.add("  - found: ${studentParent.groupId}:${studentParent.artifactId}:${studentParent.version}")
+                } else if (teacherParent.version != studentParent.version) {
+                    errors.add(i18n.getMessage("error.maven.parent.version", null, currentLocale))
+                    errors.add("  - ${teacherParent.groupId}:${teacherParent.artifactId} (expected: ${teacherParent.version}, found: ${studentParent.version})")
+                }
+            }
+
             val studentDeps = studentModel.dependencies.orEmpty()
             val teacherDeps = teacherModel.dependencies.orEmpty()
 
