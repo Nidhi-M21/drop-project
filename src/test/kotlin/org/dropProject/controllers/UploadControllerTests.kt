@@ -313,8 +313,13 @@ class UploadControllerTests {
                 .with(user(STUDENT_1)))
                 .andExpect(status().isOk)
                 .andExpect(view().name("student-upload-form"))
+                // Accept both +2 and +1 minutes because a minute boundary
+                // may be crossed between the upload and this assertion
                 .andExpect(model().attribute("coolOffEnd",
-                        now.plusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm"))))
+                        anyOf(
+                            equalTo(now.plusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm"))),
+                            equalTo(now.plusMinutes(1).format(DateTimeFormatter.ofPattern("HH:mm")))
+                        )))
     }
 
     @Test
@@ -333,6 +338,8 @@ class UploadControllerTests {
                 .with(user(STUDENT_1)))
                 .andExpect(status().isOk)
                 .andExpect(view().name("student-upload-form"))
+                // Accept both +10 and +9 minutes because a minute boundary
+                // may be crossed between the upload and this assertion
                 .andExpect(model().attribute("coolOffEnd",
                         anyOf(
                             equalTo(now.plusMinutes(10).format(formatter)),
@@ -1851,8 +1858,13 @@ class UploadControllerTests {
             .with(user(STUDENT_1)))
             .andExpect(status().isOk)
             .andExpect(view().name("student-upload-form"))
+            // Accept both +10 and +9 minutes because a minute boundary
+            // may be crossed between the upload and this assertion
             .andExpect(model().attribute("coolOffEnd",
-                now.plusMinutes(10).format(DateTimeFormatter.ofPattern("HH:mm"))))
+                anyOf(
+                    equalTo(now.plusMinutes(10).format(DateTimeFormatter.ofPattern("HH:mm"))),
+                    equalTo(now.plusMinutes(9).format(DateTimeFormatter.ofPattern("HH:mm")))
+                )))
 
         // Teacher disables cooloff for 30 minutes
         this.mvc.perform(post("/assignment/cooloff/${assignment.id}/disable")
