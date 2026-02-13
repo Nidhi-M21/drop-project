@@ -4,7 +4,7 @@
 
 * Java 17+ JDK (a compiler is needed)
 * Maven
-* MySQL 8.x (or another RDBMS)
+* MySQL 8.x (optional — H2 in-memory is used by default; MySQL is recommended for persistent data)
 
 ## Building from Source
 
@@ -30,6 +30,27 @@ And run the embedded tomcat runner:
     mvn spring-boot:run
 
 The application should now be accessible on [http://localhost:8080](http://localhost:8080)
+
+## Running with MySQL
+
+By default, Drop Project uses an H2 in-memory database, so MySQL is not required to get
+started. If you want persistent data, you can run MySQL via Docker:
+
+    docker run -d --name dp-mysql \
+      -e MYSQL_ROOT_PASSWORD=secret \
+      -e MYSQL_DATABASE=dp_dev \
+      -e MYSQL_USER=dp_dev \
+      -e MYSQL_PASSWORD=dp123 \
+      -p 3306:3306 \
+      -v dp-mysql-data:/var/lib/mysql \
+      mysql:8.0.35 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+
+Then start Drop Project with the `mysql` profile:
+
+    mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+
+Data persists across container restarts. Use `docker stop dp-mysql` and `docker start dp-mysql`
+to stop/start the container without losing data.
 
 ## Running with Docker (building from sources)
 
