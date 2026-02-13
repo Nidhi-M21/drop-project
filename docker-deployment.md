@@ -4,6 +4,11 @@ Drop Project provides pre-built Docker images at
 [`ghcr.io/drop-project-edu/drop-project`](https://github.com/drop-project-edu/drop-project/pkgs/container/drop-project).
 Below you will find everything you need to get a fully working instance up and running.
 
+## Prerequisites
+
+- Docker Engine
+- Docker Compose **v2** or later (`docker compose version` to check)
+
 ## Quick Start (in-memory database)
 
     docker run -p 8080:8080 ghcr.io/drop-project-edu/drop-project:latest
