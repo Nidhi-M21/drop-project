@@ -33,7 +33,7 @@ The application should now be accessible on [http://localhost:8080](http://local
 
 ## Running with Docker (building from sources)
 
-    docker compose -f docker-compose-dev.yml up
+    docker compose -f deploy/docker-compose-dev.yml up
 
 ## Running on GitHub Codespaces
 
@@ -45,7 +45,7 @@ This will open a new codespace with Drop Project already cloned.
 
 To run Drop Project, open a terminal in the codespace and in the root directory execute:
 
-    docker compose -f docker-compose-dev.yml up
+    docker compose -f deploy/docker-compose-dev.yml up
 
 Once the server is running, you can access the application using either of the following methods:
 

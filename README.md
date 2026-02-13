@@ -61,6 +61,7 @@ For a full guide on deploying with Docker (environment variables, volumes, optio
 
 Quick start:
 
+    cd deploy
     docker compose up
 
 The application should now be accessible on [http://localhost:8080](http://localhost:8080)

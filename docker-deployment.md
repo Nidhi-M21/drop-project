@@ -20,11 +20,11 @@ For a production-ready deployment use Docker Compose with MySQL.
 
 ```bash
 git clone https://github.com/drop-project-edu/drop-project.git
-cd drop-project
+cd drop-project/deploy
 ```
 
-Or simply download `docker-compose.yml` and `.env.example` — those are the only two
-files you need.
+Or simply download the contents of the `deploy/` folder (`docker-compose.yml` and
+`.env.example`) — those are the only two files you need.
 
 ### 2. Configure environment variables
 
@@ -75,6 +75,8 @@ Some useful settings:
 | `drop-project.footer.message`               | Custom message shown in the page footer    |
 
 ### 4. Start the services
+
+From the `deploy/` folder, run:
 
 ```bash
 docker compose up -d
@@ -154,11 +156,11 @@ wiki page.
 
 ## Updating
 
-Pull the latest images and recreate the containers:
+Pull the latest Drop Project image and recreate the container:
 
 ```bash
 docker compose pull
-docker compose up -d
+docker compose up -d --no-deps drop-project
 ```
 
 ## Full docker-compose.yml Example
