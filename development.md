@@ -4,7 +4,7 @@
 
 * Java 17+ JDK (a compiler is needed)
 * Maven
-* MySQL (or another RDBMS)
+* MySQL 8.x (or another RDBMS)
 
 ## Building from Source
 
