@@ -124,6 +124,8 @@ class ApplicationContextListener(val assignmentRepository: AssignmentRepository,
         }
         LOG.info("*************************************************")
 
+        validateJavaVersionForSecurityManager()
+
         // Abort all pending submissions since they can't continue after a restart
         val pendingStatuses = listOf(SubmissionStatus.SUBMITTED.code, SubmissionStatus.SUBMITTED_FOR_REBUILD.code, SubmissionStatus.REBUILDING.code)
         var abortedCount = 0
@@ -346,6 +348,25 @@ class ApplicationContextListener(val assignmentRepository: AssignmentRepository,
                 xmlReport = (resourceLoader.getResource("classpath:/initialData/${submissionName}JUnitXml.txt")as ClassPathResource).getContent()))
 
         return submission.id
+    }
+
+    private fun validateJavaVersionForSecurityManager() {
+        val javaVersion = Runtime.version().feature()
+        if (javaVersion >= 24) {
+            val errorMessage = "Java ${javaVersion} detected. The SecurityManager was removed in Java 24 (JEP 486) " +
+                    "and Drop Project requires it to sandbox student submissions. Please use Java 17-23."
+            LOG.error(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+        if (javaVersion >= 18) {
+            val securityManagerFlag = System.getProperty("java.security.manager")
+            if (securityManagerFlag != "allow") {
+                val errorMessage = "Java ${javaVersion} detected. The SecurityManager requires the JVM flag " +
+                        "-Djava.security.manager=allow to be set. Please add this flag to the JVM arguments."
+                LOG.error(errorMessage)
+                throw IllegalStateException(errorMessage)
+            }
+        }
     }
 
     /**

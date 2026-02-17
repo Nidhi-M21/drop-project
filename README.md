@@ -21,7 +21,7 @@ Several checks are performed on each project:
 
 ## Requirements
 
-* Java 17+ JDK (a compiler is needed)
+* Java 17-23 JDK (a compiler is needed). Java 24+ is not supported since the SecurityManager was removed (JEP 486). If using Java 18-23, the JVM flag `-Djava.security.manager=allow` must be set.
 * Maven
 * Relational database (tested with MySQL but should work with any RDBMS)
 
