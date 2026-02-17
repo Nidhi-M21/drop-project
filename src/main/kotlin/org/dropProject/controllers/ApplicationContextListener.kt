@@ -116,11 +116,29 @@ class ApplicationContextListener(val assignmentRepository: AssignmentRepository,
         LOG.info("************ Starting Drop Project **************")
         LOG.info("Maven home: ${dropProjectProperties.maven.home}")
         LOG.info("Maven repository: ${dropProjectProperties.maven.repository}")
+        LOG.info("Maven use current JDK: ${dropProjectProperties.maven.useCurrentJdk}")
+        LOG.info("Java home (running JVM): ${System.getProperty("java.home")}")
         LOG.info("Environment variables:")
         for ((key, value) in System.getenv()) {
             LOG.info("\t$key : $value")
         }
         LOG.info("*************************************************")
+
+        // Abort all pending submissions since they can't continue after a restart
+        val pendingStatuses = listOf(SubmissionStatus.SUBMITTED.code, SubmissionStatus.SUBMITTED_FOR_REBUILD.code, SubmissionStatus.REBUILDING.code)
+        var abortedCount = 0
+        for (status in pendingStatuses) {
+            val pendingSubmissions = submissionRepository.findByStatusOrderByStatusDate(status)
+            for (submission in pendingSubmissions) {
+                LOG.info("Aborting pending submission ${submission.id} (status: ${submission.getStatus()})")
+                submission.setStatus(SubmissionStatus.ABORTED_BY_TIMEOUT)
+                submissionRepository.save(submission)
+                abortedCount++
+            }
+        }
+        if (abortedCount > 0) {
+            LOG.info("Aborted ${abortedCount} pending submission(s)")
+        }
 
         // It it's a fresh instance, create two initial assignments (one in Java and the other in Kotlin) just to play
         val assignments = assignmentRepository.findAll()
