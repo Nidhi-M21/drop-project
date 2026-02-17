@@ -60,7 +60,8 @@ class ApplicationContextListener(val assignmentRepository: AssignmentRepository,
                                  val resourceLoader: ResourceLoader,
                                  val assignmentService: AssignmentService,
                                  val assignmentTeacherFiles: AssignmentTeacherFiles,
-                                 val dropProjectProperties: DropProjectProperties) : ApplicationListener<ContextRefreshedEvent> {
+                                 val dropProjectProperties: DropProjectProperties,
+                                 val environment: org.springframework.core.env.Environment) : ApplicationListener<ContextRefreshedEvent> {
 
     companion object {
         val sampleJavaAssignmentPrivateKey = """
@@ -123,6 +124,11 @@ class ApplicationContextListener(val assignmentRepository: AssignmentRepository,
             LOG.info("\t$key : $value")
         }
         LOG.info("*************************************************")
+
+        if (!environment.activeProfiles.contains("dev")) {
+            val logPath = environment.getProperty("logging.file.path", "logs")
+            println("Logging to ${logPath}/dp.log. To see logs in the console, run with the 'dev' profile: mvn spring-boot:run -Dspring-boot.run.profiles=dev")
+        }
 
         validateJavaVersionForSecurityManager()
 
