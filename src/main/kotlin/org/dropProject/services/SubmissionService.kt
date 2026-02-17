@@ -697,17 +697,11 @@ class SubmissionService(
             SubmissionStructure.MAVEN -> mavenizeMavenStructure(projectFolder, mavenizedProjectFolder, assignment)
         }
 
-        // Common cleanup logic
-        if (submission.gitSubmissionId == null && deleteOriginalProjectFolder) {  // don't delete git submissions
-            FileUtils.deleteDirectory(projectFolder)  // TODO: This seems duplicate with the lines below...
-        }
-
         // Finally remove the original project folder (the zip file is still kept)
-        if (!(assignment.id.startsWith("testJavaProj") ||
-                    assignment.id.startsWith("sample") ||
-                    assignment.id.startsWith("testKotlinProj") ||  // exclude projects used for automatic tests
-                    submission.gitSubmissionId != null)) {   // exclude git submissions
-            projectFolder.deleteRecursively()
+        // On Windows, Maven locks files preventing deletion, so skip cleanup
+        val isWindows = System.getProperty("os.name").lowercase().contains("win")
+        if (!isWindows && submission.gitSubmissionId == null && deleteOriginalProjectFolder) {  // don't delete git submissions
+            FileUtils.deleteDirectory(projectFolder)
         }
 
         return mavenizedProjectFolder
